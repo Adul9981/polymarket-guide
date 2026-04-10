@@ -18,7 +18,7 @@ export default function HeroSection() {
         </h1>
 
         <p className="text-slate-400 text-base max-w-xl mb-6 leading-relaxed">
-          精选 5 大板块 · 标注规则与截止时间 · 一键跳转交易<br />
+          精选 6 大板块 · 标注规则与截止时间 · 一键跳转交易<br />
           帮你快速找到感兴趣的预测市场，开始你的第一笔预测
         </p>
 

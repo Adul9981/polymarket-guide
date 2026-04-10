@@ -5,10 +5,16 @@ import HeroSection from '@/components/polymarket/HeroSection'
 import CategoryNav from '@/components/polymarket/CategoryNav'
 import CategorySection from '@/components/polymarket/CategorySection'
 import KnowledgeSection from '@/components/polymarket/KnowledgeSection'
+import SocialFooter from '@/components/polymarket/SocialFooter'
 
 async function fetchCategoryEvents(config: CategoryConfig): Promise<GammaEvent[]> {
   if (config.fetchStrategy === 'tag_slug' && config.tagSlug) {
-    return fetchEventsByTagSlug(config.tagSlug, 6)
+    return fetchEventsByTagSlug(
+      config.tagSlug,
+      6,
+      config.tagSlugOrder ?? 'volume24hr',
+      config.tagSlugAscending ?? false,
+    )
   }
   if (config.fetchStrategy === 'multi_tag_slug' && config.tagSlugs) {
     return fetchEventsByMultipleTagSlugs(config.tagSlugs)
@@ -62,9 +68,7 @@ export default function PolymarketPage() {
         <Suspense fallback={<LoadingSkeleton />}>
           <AllCategories />
         </Suspense>
-        <footer className="mt-16 pt-8 border-t border-[#2d2f36] text-center text-xs text-slate-600">
-          数据来源 Polymarket Gamma API · 每小时自动更新 · 仅供参考，不构成投资建议
-        </footer>
+        <SocialFooter />
       </div>
     </div>
   )
@@ -73,7 +77,7 @@ export default function PolymarketPage() {
 function LoadingSkeleton() {
   return (
     <div className="flex flex-col gap-12">
-      {Array.from({ length: 5 }).map((_, i) => (
+      {Array.from({ length: 6 }).map((_, i) => (
         <div key={i} className="animate-pulse">
           <div className="flex gap-3 mb-5">
             <div className="w-8 h-8 rounded bg-[#1a1b1e]" />

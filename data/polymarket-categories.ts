@@ -1,8 +1,10 @@
 export interface TagSlugQuery {
   slug: string
   limit?: number
-  /** 排序：volume24hr（按交易量）或 startDate（按最新创建，适合5分钟滚动市场）*/
-  order?: 'volume24hr' | 'startDate'
+  /** 排序字段 */
+  order?: 'volume24hr' | 'startDate' | 'endDate'
+  /** true = 升序（最早/最小在前），false = 降序（默认）*/
+  ascending?: boolean
 }
 
 export interface CategoryConfig {
@@ -13,12 +15,14 @@ export interface CategoryConfig {
   tip: string
   /**
    * tag_slug       → 单个 tag_slug 查询
-   * multi_tag_slug → 多个 tag_slug 合并查询（去重），用于混合展示不同周期
+   * multi_tag_slug → 多个 tag_slug 合并查询（去重）
    * slugs          → 精确 slug 列表
    * musk           → 动态生成周度 slug
    */
   fetchStrategy: 'tag_slug' | 'multi_tag_slug' | 'slugs' | 'musk'
   tagSlug?: string
+  tagSlugOrder?: 'volume24hr' | 'startDate' | 'endDate'
+  tagSlugAscending?: boolean
   tagSlugs?: TagSlugQuery[]
   slugs?: string[]
 }
@@ -32,9 +36,9 @@ export const CATEGORIES: CategoryConfig[] = [
     tip: '5分钟市场每5分钟滚动更新；每小时/每日市场交易量更大，适合初次体验',
     fetchStrategy: 'multi_tag_slug',
     tagSlugs: [
-      { slug: 'bitcoin',    limit: 2, order: 'startDate' },   // 比特币5分钟（优先展示）
-      { slug: '5m',         limit: 4, order: 'startDate' },   // 其他币种5分钟市场
-      { slug: 'up-or-down', limit: 4, order: 'volume24hr' },  // 高交易量每小时/每日
+      { slug: 'bitcoin',    limit: 1, order: 'startDate', ascending: false }, // 比特币5分钟（优先展示1个）
+      { slug: '5m',         limit: 4, order: 'startDate', ascending: false }, // 其他币种5分钟市场
+      { slug: 'up-or-down', limit: 4, order: 'endDate',   ascending: true  }, // 即将结束的每小时/每日
     ],
   },
   {
@@ -45,12 +49,25 @@ export const CATEGORIES: CategoryConfig[] = [
     tip: '结算周期最短，参与门槛低，适合快速体验预测市场',
     fetchStrategy: 'tag_slug',
     tagSlug: 'temperature',
+    tagSlugOrder: 'endDate',
+    tagSlugAscending: true,
+  },
+  {
+    id: 'nba',
+    label: 'NBA 赛事',
+    icon: '🏀',
+    description: '预测 NBA 常规赛 / 季后赛胜负，赛后即时结算，优先展示即将开赛比赛',
+    tip: '熟悉球队近况与伤病情况的球迷有天然信息优势',
+    fetchStrategy: 'tag_slug',
+    tagSlug: 'nba',
+    tagSlugOrder: 'endDate',
+    tagSlugAscending: true,
   },
   {
     id: 'musk',
     label: '马斯克推文',
     icon: '𝕏',
-    description: '预测马斯克本周发帖数量区间（主帖 + 转发，不含回复），每周四结算',
+    description: '预测马斯克本周发帖数量区间（主帖 + 转发，不含回复），每周五结算',
     tip: '7天周期、流动性极强，规律性明显，新手最推荐板块之一',
     fetchStrategy: 'musk',
   },

@@ -41,9 +41,10 @@ export interface GammaEvent {
 export async function fetchEventsByTagSlug(
   tagSlug: string,
   limit = 6,
-  order: 'volume24hr' | 'startDate' = 'volume24hr',
+  order: 'volume24hr' | 'startDate' | 'endDate' = 'volume24hr',
+  ascending = false,
 ): Promise<GammaEvent[]> {
-  const url = `${GAMMA_API}/events?active=true&closed=false&archived=false&tag_slug=${tagSlug}&limit=${limit}&order=${order}&ascending=false`
+  const url = `${GAMMA_API}/events?active=true&closed=false&archived=false&tag_slug=${tagSlug}&limit=${limit}&order=${order}&ascending=${ascending}`
   const res = await fetch(url, { next: { revalidate: 3600 } })
   if (!res.ok) return []
   return res.json()
@@ -54,11 +55,11 @@ export async function fetchEventsByTagSlug(
  * 用于需要混合展示不同子类别的场景（如：5分钟市场 + 每小时市场）。
  */
 export async function fetchEventsByMultipleTagSlugs(
-  tagSlugs: { slug: string; limit?: number; order?: 'volume24hr' | 'startDate' }[],
+  tagSlugs: { slug: string; limit?: number; order?: 'volume24hr' | 'startDate' | 'endDate'; ascending?: boolean }[],
 ): Promise<GammaEvent[]> {
   const results = await Promise.allSettled(
-    tagSlugs.map(({ slug, limit = 4, order = 'volume24hr' }) =>
-      fetchEventsByTagSlug(slug, limit, order)
+    tagSlugs.map(({ slug, limit = 4, order = 'volume24hr', ascending = false }) =>
+      fetchEventsByTagSlug(slug, limit, order, ascending)
     )
   )
   const seen = new Set<string>()

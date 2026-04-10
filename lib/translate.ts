@@ -100,6 +100,30 @@ export function translateTitle(title: string): string | null {
     return `${city} ${date} 最高气温`
   }
 
+  // ── NBA ────────────────────────────────────────────────
+  // "Heat vs. Raptors" or "Lakers vs. Warriors"
+  const nbaMatch = title.match(/^(.+?)\s+vs\.?\s+(.+?)(?:\s*\?)?$/i)
+  if (nbaMatch) {
+    const NBA_TEAMS: Record<string, string> = {
+      'Hawks': '老鹰', 'Celtics': '凯尔特人', 'Nets': '篮网', 'Hornets': '黄蜂',
+      'Bulls': '公牛', 'Cavaliers': '骑士', 'Mavericks': '独行侠', 'Nuggets': '掘金',
+      'Pistons': '活塞', 'Warriors': '勇士', 'Rockets': '火箭', 'Pacers': '步行者',
+      'Clippers': '快船', 'Lakers': '湖人', 'Grizzlies': '灰熊', 'Heat': '热火',
+      'Bucks': '雄鹿', 'Timberwolves': '森林狼', 'Pelicans': '鹈鹕', 'Knicks': '尼克斯',
+      'Thunder': '雷霆', 'Magic': '魔术', 'Sixers': '76人', '76ers': '76人',
+      'Suns': '太阳', 'Trail Blazers': '开拓者', 'Kings': '国王', 'Spurs': '马刺',
+      'Raptors': '猛龙', 'Jazz': '爵士', 'Wizards': '奇才',
+    }
+    const t1 = nbaMatch[1].trim()
+    const t2 = nbaMatch[2].trim()
+    const zh1 = NBA_TEAMS[t1] ?? t1
+    const zh2 = NBA_TEAMS[t2] ?? t2
+    // Only translate if at least one team was recognized
+    if (zh1 !== t1 || zh2 !== t2) {
+      return `${zh1} vs ${zh2}`
+    }
+  }
+
   // ── 英雄联盟 ───────────────────────────────────────────
   // "LoL: TeamA vs TeamB (BO3) - LCK Rounds"
   const lolMatch = title.match(/LoL:\s*(.+?)\s+vs\s+(.+?)\s*\((BO\d)\)/i)
