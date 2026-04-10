@@ -117,21 +117,23 @@ function getMuskTweetsSlug(referenceDate?: Date): string {
 }
 
 /**
- * 依次尝试当前周及前后一周的马斯克推文 slug，返回第一个有效的活跃事件。
+ * 获取当前及相邻周期的马斯克推文市场（最多返回 3 个活跃事件）。
+ * 优先展示当前周，再加上前后一周，按时间正序排列。
  */
-export async function fetchMuskTweetsEvent(): Promise<GammaEvent | null> {
+export async function fetchMuskTweetsEvents(): Promise<GammaEvent[]> {
   const now = new Date()
-  const slugs = [0, -7, 7].map((offsetDays) => {
+  const offsets = [0, -7, 7]
+  const slugs = offsets.map((offsetDays) => {
     const ref = new Date(now)
     ref.setDate(now.getDate() + offsetDays)
     return getMuskTweetsSlug(ref)
   })
 
-  for (const slug of slugs) {
-    const event = await fetchEventBySlug(slug)
-    if (event && !event.archived) return event
-  }
-  return null
+  const results = await Promise.allSettled(slugs.map(fetchEventBySlug))
+  return results
+    .filter((r): r is PromiseFulfilledResult<GammaEvent> => r.status === 'fulfilled' && r.value !== null && !r.value.archived)
+    .map((r) => r.value)
+    .sort((a, b) => new Date(a.endDate).getTime() - new Date(b.endDate).getTime())
 }
 
 // ── 工具函数 ────────────────────────────────────────────────────────────────

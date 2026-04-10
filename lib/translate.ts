@@ -42,14 +42,23 @@ function translateMonth(str: string): string {
   return result
 }
 
+/** 将 "April 9" 格式转换为 "4月9日" */
+function translateDate(str: string): string {
+  return str.replace(/([A-Za-z]+)\s+(\d+)/g, (_, month, day) => {
+    const key = month.charAt(0).toUpperCase() + month.slice(1).toLowerCase()
+    const zhMonth = MONTH_MAP[key]
+    return zhMonth ? `${zhMonth}${day}日` : `${month} ${day}`
+  })
+}
+
 export function translateTitle(title: string): string | null {
   // ── 马斯克推文 ──────────────────────────────────────────
   // "Elon Musk # tweets April 10 - April 17, 2026?"
   const muskMatch = title.match(/Elon Musk #\s*tweets\s+(\w+\s+\d+)\s*[-–]\s*(\w+\s+\d+)/i)
   if (muskMatch) {
-    const start = translateMonth(muskMatch[1])
-    const end = translateMonth(muskMatch[2])
-    return `马斯克本周推文数预测（${start} ~ ${end}）`
+    const start = translateDate(muskMatch[1])
+    const end = translateDate(muskMatch[2])
+    return `马斯克推文数预测（${start} ~ ${end}）`
   }
 
   // ── 加密货币涨跌（5分钟/小时）─────────────────────────
@@ -71,14 +80,14 @@ export function translateTitle(title: string): string | null {
   const updownDay = title.match(/^(.+?)\s+Up or Down on\s+(\w+\s+\d+)/i)
   if (updownDay) {
     const coin = replaceCoin(updownDay[1].trim())
-    const date = translateMonth(updownDay[2])
+    const date = translateDate(updownDay[2])
     return `${coin} ${date} 当日涨跌`
   }
 
   // "S&P 500 (SPX) Opens Up or Down on April 9?"
   const spxOpen = title.match(/S&P 500.*Opens Up or Down on\s+(\w+\s+\d+)/i)
   if (spxOpen) {
-    const date = translateMonth(spxOpen[1])
+    const date = translateDate(spxOpen[1])
     return `标普500 ${date} 开盘涨跌`
   }
 
@@ -87,7 +96,7 @@ export function translateTitle(title: string): string | null {
   const tempMatch = title.match(/Highest temperature in (.+?) on (\w+\s+\d+)/i)
   if (tempMatch) {
     const city = tempMatch[1].trim()
-    const date = translateMonth(tempMatch[2])
+    const date = translateDate(tempMatch[2])
     return `${city} ${date} 最高气温`
   }
 
@@ -99,9 +108,15 @@ export function translateTitle(title: string): string | null {
   }
 
   // ── 伊朗 ───────────────────────────────────────────────
-  if (/US x Iran ceasefire/i.test(title)) return '美伊停火协议预测'
+  if (/Trump announces US x Iran ceasefire/i.test(title)) return '特朗普宣布美伊停火'
+  if (/US x Iran ceasefire/i.test(title)) return '美伊停火协议达成预测'
   if (/Iran x Israel.*conflict ends/i.test(title)) return '伊以/美冲突结束预测'
-  if (/Military action against Iran/i.test(title)) return '对伊军事行动结束预测'
+  if (/Military action against Iran ends/i.test(title)) return '对伊军事行动结束预测'
+  if (/Trump announces end of military operations against Iran/i.test(title)) return '特朗普宣布结束对伊军事行动'
+  if (/Iranian regime fall.*june/i.test(title)) return '伊朗政权6月前倒台预测'
+  if (/Iranian regime fall/i.test(title)) return '伊朗政权倒台预测'
+  if (/Strait of Hormuz.*normal/i.test(title)) return '霍尔木兹海峡恢复通航预测'
+  if (/US x Iran diplomatic meeting/i.test(title)) return '美伊外交会谈预测'
 
   return null // 未匹配，返回 null，调用方保留英文原文
 }
