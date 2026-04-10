@@ -1,4 +1,4 @@
-import { GammaEvent, formatVolume, formatEndDate, getTopOutcomeLabel } from '@/lib/gamma-api'
+import { GammaEvent, formatVolume, formatEndDate, getTopOutcome } from '@/lib/gamma-api'
 import { getEventLink } from '@/lib/polymarket-links'
 import { translateTitle } from '@/lib/translate'
 
@@ -9,11 +9,14 @@ interface EventCardProps {
 export default function EventCard({ event }: EventCardProps) {
   const link = getEventLink(event.slug)
   const primaryMarket = event.markets?.[0]
-  const topOutcome = primaryMarket ? getTopOutcomeLabel(primaryMarket) : null
+  const outcome = primaryMarket ? getTopOutcome(primaryMarket) : null
   const endDate = formatEndDate(event.endDate || primaryMarket?.endDate || '')
   const vol24h = event.volume24hr ?? 0
   const totalVol = event.volume ?? 0
   const zhTitle = translateTitle(event.title)
+
+  // 颜色：绿色 = 是/涨/高于等；橙色 = 否/跌/低于等
+  const outcomeColor = outcome?.positive ? '#00e8a2' : '#f97316'
 
   return (
     <div className="pm-card group flex flex-col gap-2.5">
@@ -32,10 +35,17 @@ export default function EventCard({ event }: EventCardProps) {
       )}
 
       {/* 当前最高概率选项 */}
-      {topOutcome && (
-        <div className="inline-flex items-center gap-1.5 text-xs">
-          <span className="w-2 h-2 rounded-full bg-[#00e8a2] shrink-0" />
-          <span className="text-[#00e8a2] font-medium">{topOutcome}</span>
+      {outcome && (
+        <div className="inline-flex items-center gap-2 text-xs">
+          <span
+            className="w-2 h-2 rounded-full shrink-0"
+            style={{ backgroundColor: outcomeColor }}
+          />
+          <span className="font-semibold" style={{ color: outcomeColor }}>
+            {outcome.label}
+          </span>
+          <span className="text-slate-400">·</span>
+          <span className="text-slate-300 font-medium">{outcome.pct}%</span>
         </div>
       )}
 

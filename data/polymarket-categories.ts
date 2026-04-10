@@ -45,7 +45,7 @@ export const CATEGORIES: CategoryConfig[] = [
     id: 'weather',
     label: '天气预测',
     icon: '🌤',
-    description: '预测全球城市每日最高气温，数据来源为官方气象局，每天结算',
+    description: '预测全球城市每日最高气温，数据来源为 Polymarket 规则指定气象站，每天结算',
     tip: '结算周期最短，参与门槛低，适合快速体验预测市场',
     fetchStrategy: 'tag_slug',
     tagSlug: 'temperature',

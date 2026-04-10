@@ -159,7 +159,24 @@ export function formatEndDate(isoDate: string): string {
   }) + ' ET'
 }
 
-export function getTopOutcomeLabel(market: GammaMarket): string | null {
+/** 将英文 outcome 标签翻译为中文 */
+function translateOutcome(label: string): string {
+  const map: Record<string, string> = {
+    Yes: '是', No: '否',
+    Up: '涨', Down: '跌',
+    Over: '高于', Under: '低于',
+    Higher: '偏高', Lower: '偏低',
+  }
+  return map[label] ?? label
+}
+
+export interface OutcomeInfo {
+  label: string   // 已翻译的标签，如 "是" / "否" / "涨" / "热火"
+  pct: number     // 百分比 0-100
+  positive: boolean // true=绿色（是/涨/高于），false=红/橙（否/跌/低于）
+}
+
+export function getTopOutcome(market: GammaMarket): OutcomeInfo | null {
   try {
     const outcomes: string[] = JSON.parse(market.outcomes)
     const prices: string[] = JSON.parse(market.outcomePrices)
@@ -168,8 +185,19 @@ export function getTopOutcomeLabel(market: GammaMarket): string | null {
     const maxVal = Math.max(...nums)
     const maxIdx = nums.indexOf(maxVal)
     const pct = Math.round(maxVal * 100)
-    return `${outcomes[maxIdx]} ${pct}%`
+    const rawLabel = outcomes[maxIdx]
+    const label = translateOutcome(rawLabel)
+    // 判断正负色：否/跌/低于/Down/No 用橙色，其余用绿色
+    const negative = new Set(['否', '跌', '低于', '偏低'])
+    const positive = !negative.has(label)
+    return { label, pct, positive }
   } catch {
     return null
   }
+}
+
+/** @deprecated 使用 getTopOutcome 代替 */
+export function getTopOutcomeLabel(market: GammaMarket): string | null {
+  const info = getTopOutcome(market)
+  return info ? `${info.label} ${info.pct}%` : null
 }

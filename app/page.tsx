@@ -7,28 +7,38 @@ import CategorySection from '@/components/polymarket/CategorySection'
 import KnowledgeSection from '@/components/polymarket/KnowledgeSection'
 import SocialFooter from '@/components/polymarket/SocialFooter'
 
+/** 过滤掉 endDate 已过期的事件 */
+function filterExpired(events: GammaEvent[]): GammaEvent[] {
+  const now = Date.now()
+  return events.filter((e) => {
+    const end = e.endDate || e.markets?.[0]?.endDate
+    if (!end) return true // 无截止时间保留
+    return new Date(end).getTime() > now
+  })
+}
+
 async function fetchCategoryEvents(config: CategoryConfig): Promise<GammaEvent[]> {
+  let events: GammaEvent[] = []
+
   if (config.fetchStrategy === 'tag_slug' && config.tagSlug) {
-    return fetchEventsByTagSlug(
+    events = await fetchEventsByTagSlug(
       config.tagSlug,
       6,
       config.tagSlugOrder ?? 'volume24hr',
       config.tagSlugAscending ?? false,
     )
-  }
-  if (config.fetchStrategy === 'multi_tag_slug' && config.tagSlugs) {
-    return fetchEventsByMultipleTagSlugs(config.tagSlugs)
-  }
-  if (config.fetchStrategy === 'musk') {
-    return fetchMuskTweetsEvents()
-  }
-  if (config.fetchStrategy === 'slugs' && config.slugs) {
+  } else if (config.fetchStrategy === 'multi_tag_slug' && config.tagSlugs) {
+    events = await fetchEventsByMultipleTagSlugs(config.tagSlugs)
+  } else if (config.fetchStrategy === 'musk') {
+    events = await fetchMuskTweetsEvents()
+  } else if (config.fetchStrategy === 'slugs' && config.slugs) {
     const results = await Promise.allSettled(config.slugs.map(fetchEventBySlug))
-    return results
+    events = results
       .filter((r): r is PromiseFulfilledResult<GammaEvent> => r.status === 'fulfilled' && r.value !== null)
       .map((r) => r.value)
   }
-  return []
+
+  return filterExpired(events)
 }
 
 async function AllCategories() {
