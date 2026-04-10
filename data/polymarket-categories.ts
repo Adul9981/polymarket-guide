@@ -32,7 +32,8 @@ export const CATEGORIES: CategoryConfig[] = [
     tip: '5分钟市场每5分钟滚动更新；每小时/每日市场交易量更大，适合初次体验',
     fetchStrategy: 'multi_tag_slug',
     tagSlugs: [
-      { slug: '5m',         limit: 3, order: 'startDate' },   // 最新5分钟市场
+      { slug: 'bitcoin',    limit: 2, order: 'startDate' },   // 比特币5分钟（优先展示）
+      { slug: '5m',         limit: 4, order: 'startDate' },   // 其他币种5分钟市场
       { slug: 'up-or-down', limit: 4, order: 'volume24hr' },  // 高交易量每小时/每日
     ],
   },
